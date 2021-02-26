@@ -1,0 +1,22 @@
+{
+  "name": "mrpc/twichbot",
+  "description": "A twitch bot",
+  "license": "MIT",
+  "homepage": "https://github.com/mrpc/twitchBot",
+  "keywords": ["cli","command-line", "template"],
+  "autoload": {
+    "psr-4": {
+      "mrpc\\": "src/"
+    }
+  },
+
+  "repositories": [
+    {
+        "type": "vcs",
+        "url": "https://github.com/mrpc/minicli"
+    }
+  ],
+  "require": {
+      "minicli/minicli": "dev-master"
+  }
+}
