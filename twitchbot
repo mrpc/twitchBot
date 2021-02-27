@@ -9,13 +9,22 @@ require __DIR__ . '/vendor/autoload.php';
 
 use Minicli\App;
 
+
+if (file_exists(__DIR__ . '/settings.php')) {
+    $settings = include(__DIR__ . '/settings.php');
+} else {
+    die(
+        "\nNo settings file found.\n"
+        . "Please rename settings-rename.php to settings.php\n"
+        . "and edit it to change all settings.\n\n"
+    );
+}
+
+
 $app = new App([
     'app_path' => __DIR__ . '/src/Command',
     'debug' => false,
-    #Twitch
-    'twitch_user' => '',
-    'twitch_oauth' => '',
-    'twitch_channel' => ''
+    'settings' => $settings
 ]);
 
 $app->setSignature("TwitchBot for Twitch.\n./twitchbot twitch");

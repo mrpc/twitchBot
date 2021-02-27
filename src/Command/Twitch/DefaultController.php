@@ -20,9 +20,9 @@ class DefaultController extends CommandController
 
         $app = $this->getApp();
 
-        $twitch_user = $app->config->twitch_user;
-        $twitch_oauth = $app->config->twitch_oauth;
-        $twitch_channel = $app->config->twitch_channel;
+        $twitch_user = $app->config->settings['twitch']['username'];
+        $twitch_oauth = $app->config->settings['twitch']['oauth'];
+        $twitch_channel = $app->config->settings['twitch']['channel'];
 
         if (!$twitch_user OR !$twitch_oauth) {
             $this->getPrinter()->error(
