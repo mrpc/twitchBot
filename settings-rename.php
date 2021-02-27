@@ -11,6 +11,7 @@ return [
     '7days' => [
         'hostname' => 'localhost',
         'port' => '8080',
-        'password' => ';'
+        'password' => '',
+        'playername' => ''
     ]
 ]; 
