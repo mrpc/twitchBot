@@ -5,7 +5,7 @@ namespace mrpc\Command\Twitch;
 
 use mrpc\TwitchChatClient;
 use Minicli\Command\CommandController;
-
+use mrpc\SevenDaysToDie;
 
 class DefaultController extends CommandController
 {
@@ -16,9 +16,24 @@ class DefaultController extends CommandController
 
     public function handle()
     {
+        $app = $this->getApp();
+        $this->getPrinter()->info("Connecting to 7 Days To Die server...");
+        $sevenDaysToDie = new SevenDaysToDie(
+            $app->config->settings['7days']['hostname'],
+            $app->config->settings['7days']['port'],
+            $app->config->settings['7days']['password']
+        );
+        $sevenDaysToDie->connect();
+        if (!$sevenDaysToDie->isConnected()) {
+            $this->getPrinter()->error(
+                $sevenDaysToDie->getLastError()
+            );
+            return;
+        }
+        $this->getPrinter()->info("Connected.\n\n");
         $this->getPrinter()->info("Starting Minichat...");
 
-        $app = $this->getApp();
+        
 
         $twitch_user = $app->config->settings['twitch']['username'];
         $twitch_oauth = $app->config->settings['twitch']['oauth'];
@@ -30,6 +45,8 @@ class DefaultController extends CommandController
             );
             return;
         }
+
+        
 
         $client = new TwitchChatClient(
             $twitch_user, $twitch_oauth, $twitch_channel
@@ -51,6 +68,7 @@ class DefaultController extends CommandController
          */
         while (true) {
             $content = $client->read(512);
+            $sevenDaysContent = $sevenDaysToDie->read(512);
 
             //is it a ping?
             if (strstr($content, 'PING')) {
@@ -69,6 +87,9 @@ class DefaultController extends CommandController
                 $this->getPrinter()->newline();
                 continue;
             }
+            if (trim($sevenDaysContent) != '') {
+                \mrpc\Logger::log(trim($sevenDaysContent), '7daystodie');
+            }
 
             usleep(100000);
         }
@@ -79,7 +100,7 @@ class DefaultController extends CommandController
      */
     public function parseMessage($raw_message)
     {
-
+        \mrpc\Logger::log(trim($raw_message), 'twitchLogs');
         $this->getPrinter()->out(' --- RAW START ---');
         $this->getPrinter()->newline();
         $this->getPrinter()->out($raw_message);
