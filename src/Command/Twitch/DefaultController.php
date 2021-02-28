@@ -13,6 +13,7 @@ class DefaultController extends CommandController
      * @var TwitchChatClient
      */
     protected $client = null;
+    protected $sevenDaysToDie = null;
 
     public function handle()
     {
@@ -56,10 +57,11 @@ class DefaultController extends CommandController
         if (!$client->isConnected()) {
             $this->getPrinter()->error(
                 "It was not possible to connect."
-        );
+            );
             return;
         }
         $this->client = $client;
+        $this->sevenDaysToDie = $sevenDaysToDie;
 
         $this->getPrinter()->info("Connected to Twitch.\n");
 
@@ -68,7 +70,15 @@ class DefaultController extends CommandController
          */
         while (true) {
             $content = $client->read(512);
-            $sevenDaysContent = $sevenDaysToDie->read(512);
+            $sevenDaysContent = $sevenDaysToDie->read();
+
+
+            if (trim($sevenDaysContent) != '') {
+                $this->getPrinter()->info('7DTD: ' . $sevenDaysContent);
+                $this->getPrinter()->newline();
+                \mrpc\Logger::log(trim($sevenDaysContent), '7daystodie');
+            }
+
 
             //is it a ping?
             if (strstr($content, 'PING')) {
@@ -87,11 +97,8 @@ class DefaultController extends CommandController
                 $this->getPrinter()->newline();
                 continue;
             }
-            if (trim($sevenDaysContent) != '') {
-                \mrpc\Logger::log(trim($sevenDaysContent), '7daystodie');
-            }
 
-            usleep(100000);
+            usleep(50000);
         }
     }
 
@@ -127,7 +134,7 @@ class DefaultController extends CommandController
 
         $style_nick = "info";
 
-        if ($nick === $this->getApp()->config->twitch_user) {
+        if ($nick === $this->getApp()->config->settings['twitch']['username']) {
             $style_nick = "info_alt";
         }
 
@@ -135,12 +142,52 @@ class DefaultController extends CommandController
         $this->getPrinter()->out(': ');
         $this->getPrinter()->out($message);
         $this->getPrinter()->newline();
+        $app = $this->getApp();
         switch ($message) {
             case "!spawn";
-                $this->asnwer('what do you want to spawn?');
+                if ($nick === $app->config->settings['twitch']['channel'] 
+                    || $nick == 'mel0dytv') {
+                    $this->sendCommand(
+                        'say "Ο χρήστης ' 
+                        . $nick 
+                        . ' σου έστειλε δώρο μια screamer..."'
+                    );
+                    usleep(10000);
+                    $this->sendCommand(
+                        'spawnscouts ' 
+                        . $app->config->settings['7days']['playername']
+                    );
+                    
+                    $this->asnwer('Τσίμπα μια Screamer. ΚΑΛΑ ΝΑ ΠΕΡΑΣΕΙΣ!');
+                } else {
+                    $this->asnwer(
+                        'Δε σε ξέρω '
+                         . $nick 
+                         . '. Δέχομαι εντολές μόνο από τον ' 
+                         . $this->getApp()->config->settings['twitch']['channel']
+                    );
+                }
+                //$this->asnwer('what do you want to spawn?');
+                break;
+            default:
+                $this->sendCommand(
+                    'say "7DTD-' . $nick . ': ' . $message . '"'
+                );
+                \mrpc\Logger::log(
+                    $nick . ': ' . $message, 'chat'
+                );
                 break;
         }
 
+    }
+
+    /**
+     * Send a command to 7 Days to Die
+     */
+    public function sendCommand($command)
+    {
+        \mrpc\Logger::log('->' . $command, '7daystodie');
+        $this->sevenDaysToDie->send($command . "\n");
     }
 
     /**
@@ -150,12 +197,16 @@ class DefaultController extends CommandController
     {
         $this->client->send(
             'PRIVMSG #' 
-            . $this->getApp()->config->twitch_channel 
+            . $this->getApp()->config->settings['twitch']['channel'] 
             . ' :' 
             . $message
         );
         $this->getPrinter()->out("twitchBot: ", 'info_alt');
         $this->getPrinter()->out($message);
         $this->getPrinter()->newline();
+        \mrpc\Logger::log(
+            $this->getApp()->config->settings['twitch']['nickname'] 
+            . ': ' . $message, 'chat'
+        );
     }
 }

@@ -60,6 +60,11 @@ class TwitchChatClient
         $this->send('CAP REQ :twitch.tv/tags');
         $this->send('CAP REQ :twitch.tv/commands');
         $this->send(sprintf("JOIN #%s", $this->channel));
+
+        socket_set_option(
+            $this->socket, SOL_SOCKET, SO_RCVTIMEO, 
+            array("sec" => 1, "usec" => 500000)
+        );
     }
 
    

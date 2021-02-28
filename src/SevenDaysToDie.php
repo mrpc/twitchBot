@@ -33,12 +33,20 @@ class SevenDaysToDie
         if (socket_connect($this->socket, $this->hostname, $this->port) === FALSE) {
             return false;
         }
+        usleep(100000);
         $data = $this->read();
-        if ($data == 'Please enter password:') {
-            $this->send($this->password);
+        \mrpc\Logger::log(trim($data), '7daystodie');
+        \mrpc\Logger::log($this->password, '7daystodie');
+        $this->send($this->password);
+        
+        $data = $this->read(512);
+        if ($data != '') {
+           \mrpc\Logger::log($data, '7daystodie');
         }
-
-        \mrpc\Logger::log(trim($this->read()), '7daystodie');
+        socket_set_option(
+            $this->socket, SOL_SOCKET, SO_RCVTIMEO, 
+            array("sec" => 1, "usec" => 50000)
+        );
         return true;
     }
 
@@ -66,7 +74,7 @@ class SevenDaysToDie
      * Reads a maximum of length bytes from the socket
      * @return string
      */
-    public function read($size = 256)
+    public function read($size = 512)
     {
         if (!$this->isConnected()) {
             return false;
