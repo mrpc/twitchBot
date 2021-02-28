@@ -79,8 +79,14 @@ class SevenDaysToDie
         if (!$this->isConnected()) {
             return false;
         }
-
-        return socket_read($this->socket, $size);
+        $data = socket_read($this->socket, $size);
+        if (!$data) {
+            if ($this->getLastError() == 107) {
+                $this->close();
+                $this->socket = null;
+            }
+        }
+        return $data;
     }
 
     /**
