@@ -91,7 +91,7 @@ class TwitchChatClient
      * Reads a maximum of length bytes from the socket
      * @return string
      */
-    public function read($size = 256)
+    public function read($size = 512)
     {
         if (!$this->isConnected()) {
             return false;

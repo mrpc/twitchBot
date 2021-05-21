@@ -206,7 +206,8 @@ class DefaultController extends CommandController
         $this->getPrinter()->newline();
         \mrpc\Logger::log(
             $this->getApp()->config->settings['twitch']['nickname'] 
-            . ': ' . $message, 'chat'
+            . ': ' . $message, 
+            'chat-' . $this->getApp()->config->settings['twitch']['channel']
         );
     }
 }
