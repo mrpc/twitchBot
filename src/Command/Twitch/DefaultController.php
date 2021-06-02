@@ -174,7 +174,9 @@ class DefaultController extends CommandController
                     'say "7DTD-' . $nick . ': ' . $message . '"'
                 );
                 \mrpc\Logger::log(
-                    $nick . ': ' . $message, 'chat'
+                    $nick . ': ' . $message, 
+                    'chat-'
+                     . $this->getApp()->config->settings['twitch']['channel']
                 );
                 break;
         }
